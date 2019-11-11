@@ -7,12 +7,17 @@ int main(int argc, char** argv){
   cout << "test main" << endl;
 
   RBTree *myTree = new RBTree();
+
   myTree->insert(69);
   myTree->insert(12);
   myTree->insert(30);
   myTree->insert(47);
   myTree->insert(4);
   myTree->insert(96);
+  myTree->printTree();
+  myTree->deleteNode(12);
+  myTree->printTree();
+  myTree->deleteNode(4);
   myTree->printTree();
   /*
   myTree->insert(22);

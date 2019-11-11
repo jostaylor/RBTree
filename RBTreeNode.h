@@ -41,6 +41,9 @@ RBTreeNode::~RBTreeNode(){
 }
 
 string RBTreeNode::getColor(){
+  if (this == NULL){ // no object exists --> NULL LEAF NODE here. return black
+      return "BLACK";
+  }
   if (col == RED){
     return "RED";
   }
