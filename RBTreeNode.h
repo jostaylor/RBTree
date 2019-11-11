@@ -17,6 +17,7 @@ class RBTreeNode{
     RBTreeNode *left;
     RBTreeNode *right;
 
+    string getColor();
     void setColor(Color c);
     bool isRed();
     bool isBlack();
@@ -39,14 +40,32 @@ RBTreeNode::~RBTreeNode(){
   // diy
 }
 
+string RBTreeNode::getColor(){
+  if (col == RED){
+    return "RED";
+  }
+  else if (col == BLACK){
+    return "BLACK";
+  }
+  else{
+    return "N/A";
+  }
+}
+
 void RBTreeNode::setColor(Color c){
   col = c;
 }
 
 bool RBTreeNode::isRed(){
+  if (this == NULL){ // no object exists --> LEAF NODE here. set it to black
+      return false;
+  }
   return (col == RED);
 }
 
 bool RBTreeNode::isBlack(){
+  if (this == NULL){ // no object exists --> LEAF NODE here. set it to black
+      return true;
+  }
   return (col == BLACK);
 }

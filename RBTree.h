@@ -22,8 +22,13 @@ class RBTree{
     RBTreeNode* getMax();
     void recPrint(RBTreeNode *node); // recursive print
 
-    void fixDoubleBlack(RBTreeNode n);
-    void fixDoubleRed(RBTreeNode n);
+    void fixDoubleBlack(RBTreeNode *node);
+    void fixDoubleRed(RBTreeNode *node);
+    void rotateTriangleRight(RBTreeNode *current, RBTreeNode *parent, RBTreeNode *gp);
+    void rotateTriangleLeft(RBTreeNode *current, RBTreeNode *parent, RBTreeNode *gp);
+    void rotateSideHeavyRight(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode *greatGP);
+    void rotateSideHeavyLeft(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode *greatGP);
+
 };
 
 RBTree::RBTree(){
@@ -45,11 +50,12 @@ void RBTree::recPrint(RBTreeNode *node){
   }
 
   recPrint(node->left);
-  cout << node->key << "   " << node->col << endl;
+  cout << node->key << "\t" << node->getColor() << endl;
   recPrint(node->right);
 }
 
 void RBTree::printTree(){
+  cout << "Tree where root = " << root->key << endl;
   recPrint(root);
 }
 
@@ -84,10 +90,16 @@ void RBTree::insert(int value){
 
   // check if value exists in tree already before proceding
   // every key is unique, so if it is already in the tree, we cannot insert
+  if (search(value) == true){
+    // node already in tree
+    cout << "Node already in tree. Cannot add " << value << endl;
+    exit(1);
+  }
 
   RBTreeNode *node = new RBTreeNode(value);
 
   if (root == NULL){ // empty tree
+    node->setColor(BLACK);
     root = node;
   }
   else{
@@ -96,7 +108,7 @@ void RBTree::insert(int value){
     RBTreeNode *current = root;
     RBTreeNode *parent = NULL;
 
-    int deez = 0 ;
+    int deez = 0;
     int nuts = 0;
     while(deez == nuts){
       parent = current;
@@ -119,6 +131,11 @@ void RBTree::insert(int value){
           break;
         }
       }
+    }
+    // check for double red
+    if (parent->isRed() && node->isRed()){
+      cout << "Double red detected" << endl;
+      fixDoubleRed(node);
     }
   }
 }
@@ -266,10 +283,154 @@ RBTreeNode* RBTree::getSuccessor(RBTreeNode *d){ // d is the node to be deleted
 
 }
 
-void RBTree::fixDoubleRed(RBTreeNode n){
+void RBTree::fixDoubleRed(RBTreeNode *node){
+  cout << "fixing double red" << endl;
+  // finds node while keeping track of parent and grandparent
+  RBTreeNode *current = root;
+  RBTreeNode *parent = root;
+  RBTreeNode *gp = root;
+  RBTreeNode *greatGP = root;
+  int value = node->key;
+  bool lastTurnLeft = true;
+  bool secondLastTurnLeft = true;
+  while (current->key != value){
+
+    greatGP = gp;
+    gp = parent;
+    parent = current;
+
+    secondLastTurnLeft = lastTurnLeft;
+
+    if (value < current->key){
+      current = current->left;
+      lastTurnLeft = true;
+    }
+    else{
+      current = current->right;
+      lastTurnLeft = false;
+    }
+
+  }
+  cout << "found node " << value << endl;
+
+  // ----- finds uncle and checks if uncle is red or black -----
+  RBTreeNode *uncle;
+
+  if (secondLastTurnLeft){
+    // parent is left child --> uncle must be right child
+    uncle = gp->right;
+  }
+  else{
+    // parent is right child --> uncle must be left child
+    uncle = gp->left;
+  }
+
+  // Uncle is red ------------ COLOR FLIP
+  if (uncle->isRed()){
+    cout << "uncle is red --> recoloring" << endl;
+    // parent and uncle (parent's sibling) turn to black
+    parent->setColor(BLACK);
+    uncle->setColor(BLACK);
+    // and their parent (grandparent) turn to red
+    if (gp != root) // unless it is the root
+      gp->setColor(RED);
+    else
+      gp->setColor(BLACK);
+
+    // Check for another instance of double red
+    if (greatGP->getColor() == "RED"){
+      // both grandparent and great-grandparent are red --> recur
+      cout << "Double red detected -- recur" << endl;
+      fixDoubleRed(gp);
+    }
+  }
+  // Uncle is black ----------- ROTATION
+  else{
+    cout << "uncle is black --> rotating" << endl;
+
+    // Case Right-then-Left --- Triangle
+    if (lastTurnLeft == true && secondLastTurnLeft == false){
+      cout << "rotation triangle" << endl;
+      rotateTriangleLeft(current, parent, gp);
+      RBTreeNode *temp = current;
+      current = parent;
+      parent = temp;
+    }
+    // Case Left-then-Right --- Triangle
+    else if (lastTurnLeft == false && secondLastTurnLeft == true){
+      cout << "rotation triangle" << endl;
+      rotateTriangleRight(current, parent, gp);
+      RBTreeNode *temp = current;
+      current = parent;
+      parent = temp;
+    }
+
+    // Case Right-Right --- Side Heavy
+    if (lastTurnLeft == false && secondLastTurnLeft == false){
+      cout << "rotation side heavy" << endl;
+      rotateSideHeavyLeft(parent, gp, greatGP);
+      // Flipping colors after rotation
+      current->setColor(RED);
+      parent->setColor(BLACK);
+      gp->setColor(RED);
+    }
+
+    // Case Left-Left --- Side Heavy --- (lastTurnLeft == true && secondLastTurnLeft == true)
+    else{
+      cout << "rotation side heavy" << endl;
+      rotateSideHeavyRight(parent, gp, greatGP);
+      // Flipping colors after rotation
+      current->setColor(RED);
+      parent->setColor(BLACK);
+      gp->setColor(RED);
+    }
+
+  }
+
+}
+
+void RBTree::fixDoubleBlack(RBTreeNode *node){
   // stuff
 }
 
-void RBTree::fixDoubleBlack(RBTreeNode n){
-  // stuff
+void RBTree::rotateTriangleLeft(RBTreeNode *current, RBTreeNode *parent, RBTreeNode *gp){
+  gp->right = current;
+  parent->left = current->right;
+  current->right = parent;
+}
+
+void RBTree::rotateTriangleRight(RBTreeNode *current, RBTreeNode *parent, RBTreeNode *gp){
+  gp->left = current;
+  parent->right = current->left;
+  current->left = parent;
+}
+
+void RBTree::rotateSideHeavyLeft(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode *greatGP){
+  if (greatGP->right == gp){ // grandparent is RIGHT child
+    greatGP->right = parent;
+  }
+  else if (greatGP->left == gp){ // grandparent is LEFT child
+    greatGP->left = parent;
+  }
+  else{ // grandparent is not child of greatGP, meaning grandparent is root --> move root to parent
+    root = parent;
+  }
+  // Pointer updates
+  gp->right = parent->left;
+  parent->left = gp;
+}
+
+void RBTree::rotateSideHeavyRight(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode *greatGP){
+  if (greatGP->right == gp){ // grandparent is RIGHT child
+    greatGP->right = parent;
+  }
+  else if (greatGP->left == gp){ // grandparent is LEFT child
+    greatGP->left = parent;
+  }
+  else{ // grandparent is not child of greatGP, meaning grandparent is root --> move root to parent
+    root = parent;
+  }
+  // Pointer updates
+  gp->left = parent->right;
+  parent->right = gp;
 }
