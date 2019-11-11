@@ -1,41 +1,51 @@
 #include <iostream>
-#include "TreeNode.h"
+#include "RBTreeNode.h"
 
 using namespace std;
 
 class RBTree{
   private:
-    TreeNode *root;
+    RBTreeNode *root;
   public:
     RBTree();
     ~RBTree();
 
     bool search(int value);
     void insert(int value);
-
-    // delete
     bool deleteNode(int value);
+    void printTree();
 
     // helper functions
-    TreeNode* getSuccessor(TreeNode *d);
+    RBTreeNode* getSuccessor(RBTreeNode *d);
     bool isEmpty();
-    TreeNode* getMin();
-    TreeNode* getMax();
-    void printTree();
-    void recPrint(TreeNode *node); // recursive print
+    RBTreeNode* getMin();
+    RBTreeNode* getMax();
+    void recPrint(RBTreeNode *node); // recursive print
+
+    void fixDoubleBlack(RBTreeNode n);
+    void fixDoubleRed(RBTreeNode n);
 };
 
 RBTree::RBTree(){
   root = NULL;
 }
 
-void RBTree::recPrint(TreeNode *node){
+bool RBTree::isEmpty(){
+  if (root == NULL){
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+
+void RBTree::recPrint(RBTreeNode *node){
   if (node == NULL){
     return;
   }
 
   recPrint(node->left);
-  cout << node->key << endl;
+  cout << node->key << "   " << node->col << endl;
   recPrint(node->right);
 }
 
@@ -43,9 +53,9 @@ void RBTree::printTree(){
   recPrint(root);
 }
 
-TreeNode* RBTree::getMax(){
+RBTreeNode* RBTree::getMax(){
 
-  TreeNode *curr = root;
+  RBTreeNode *curr = root;
 
   if (root == NULL){
     return NULL;
@@ -57,8 +67,8 @@ TreeNode* RBTree::getMax(){
   return curr;
 }
 
-TreeNode* RBTree::getMin(){
-  TreeNode *curr = root;
+RBTreeNode* RBTree::getMin(){
+  RBTreeNode *curr = root;
 
   if (root == NULL){
     return NULL;
@@ -75,7 +85,7 @@ void RBTree::insert(int value){
   // check if value exists in tree already before proceding
   // every key is unique, so if it is already in the tree, we cannot insert
 
-  TreeNode *node = new TreeNode(value);
+  RBTreeNode *node = new RBTreeNode(value);
 
   if (root == NULL){ // empty tree
     root = node;
@@ -83,8 +93,8 @@ void RBTree::insert(int value){
   else{
     // tree is not empty
     // let's find the insertion point
-    TreeNode *current = root;
-    TreeNode *parent = NULL;
+    RBTreeNode *current = root;
+    RBTreeNode *parent = NULL;
 
     int deez = 0 ;
     int nuts = 0;
@@ -113,7 +123,7 @@ void RBTree::insert(int value){
   }
 }
 
-// this function may change to return a TreeNode* for assignment_5
+// this function may change to return a RBTreeNode* for assignment_5
 bool RBTree::search(int value){
 
   // if the tree is empty
@@ -122,7 +132,7 @@ bool RBTree::search(int value){
   }
 
   // made it here? the tree is for shizzle not empty
-  TreeNode *current = root;
+  RBTreeNode *current = root;
   while (current->key != value){
     if (value < current->key){
       current = current->left;
@@ -143,8 +153,8 @@ bool RBTree::deleteNode(int value){
   if (root == NULL) // tree is empty
     return false;
 
-  TreeNode *parent = root;
-  TreeNode *current = root;
+  RBTreeNode *parent = root;
+  RBTreeNode *current = root;
   bool isLeft = true;
 
   // let's attempt to find the node to be deleted
@@ -214,7 +224,7 @@ bool RBTree::deleteNode(int value){
   // get ready to rumble
   else{
 
-    TreeNode *successor = getSuccessor(current);
+    RBTreeNode *successor = getSuccessor(current);
 
     if (current == root){
       root = successor;
@@ -231,14 +241,14 @@ bool RBTree::deleteNode(int value){
   return true;
 }
 
-TreeNode* RBTree::getSuccessor(TreeNode *d){ // d is the node to be deleted
+RBTreeNode* RBTree::getSuccessor(RBTreeNode *d){ // d is the node to be deleted
   // the successor can either be the largest number less than d
   // or the smallest number greater than d.
   // Either of these work --> it doesn't matter which route you take --> it's personal preference
   // in this case, we will be choosing the latter --> right once than all the way left
-  TreeNode *current = d->right;
-  TreeNode *sp = d; // Successor's Parent
-  TreeNode *successor = d;
+  RBTreeNode *current = d->right;
+  RBTreeNode *sp = d; // Successor's Parent
+  RBTreeNode *successor = d;
 
   while(current != NULL){
     sp = successor;
@@ -254,4 +264,12 @@ TreeNode* RBTree::getSuccessor(TreeNode *d){ // d is the node to be deleted
   }
   return successor;
 
+}
+
+void RBTree::fixDoubleRed(RBTreeNode n){
+  // stuff
+}
+
+void RBTree::fixDoubleBlack(RBTreeNode n){
+  // stuff
 }
