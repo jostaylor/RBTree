@@ -4,3 +4,4 @@ extra credit bb
 Resources Used:
 https://www.geeksforgeeks.org/this-pointer-in-c/
 https://www.youtube.com/watch?v=CTvfzU_uNKE
+http://gauss.ececs.uc.edu/RedBlack/redblack.html

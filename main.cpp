@@ -21,7 +21,6 @@ int main(int argc, char** argv){
   myTree->printTree();
   myTree->deleteNode(34);
   myTree->printTree();
-  /*
   myTree->deleteNode(56);
   myTree->printTree();
   myTree->deleteNode(30);
@@ -40,7 +39,6 @@ int main(int argc, char** argv){
   myTree->printTree();
   myTree->deleteNode(2);
   myTree->printTree();
-  */
   /*
   myTree->insert(69);
   myTree->insert(12);

@@ -3,6 +3,13 @@
 
 using namespace std;
 
+struct successorReturnValues{
+  RBTreeNode* succ;
+  RBTreeNode* sp;
+  bool successorUsed;
+};
+
+
 class RBTree{
   private:
     RBTreeNode *root;
@@ -16,7 +23,8 @@ class RBTree{
     void printTree();
 
     // helper functions
-    RBTreeNode* getSuccessor(RBTreeNode *d);
+    RBTreeNode* getSuccessor(RBTreeNode *d, RBTreeNode** successorParent, bool* successorUsed, bool* successorIsRightBelow);
+    RBTreeNode* getPredecessor(RBTreeNode *d, RBTreeNode** successorParent, bool* successorUsed, bool* successorIsRightBelow);
     bool isEmpty();
     RBTreeNode* getMin();
     RBTreeNode* getMax();
@@ -197,7 +205,11 @@ bool RBTree::deleteNode(int value){
   }
 
   // if we make it here, then we have found the node to be deleted
+  cout << "found node to be deleted: " << current->key << ". color is " << current->getColor() << endl;
   RBTreeNode *replacementNode;
+  RBTreeNode *sp = parent;
+  bool successorUsed;
+  bool successorIsRightBelow;
   RBTreeNode *deletedNode = current;
 
   // if node is external / has 0 children / is a leaf
@@ -249,7 +261,10 @@ bool RBTree::deleteNode(int value){
   // get ready to rumble
   else{
 
-    RBTreeNode *successor = getSuccessor(current);
+    RBTreeNode *successor;
+    successor = getSuccessor(current, &sp, &successorUsed, &successorIsRightBelow);
+
+    cout << "succesor/predecessor = " << successor->key << endl;
 
     replacementNode = successor; // save for color flip
 
@@ -263,33 +278,116 @@ bool RBTree::deleteNode(int value){
       parent->right = successor;
     }
 
-    successor->left = current->left;
+    // Makes sure the right pointer is changed depending on if successor or predecessor is used
+    if (successorUsed){
+      successor->left = current->left;
+    }
+    else{
+      successor->right = current->right;
+    }
+
+    /*
+    // Change color of replacementNode to color of deletedNode
+    if (deletedNode->getColor() == "RED"){
+      replacementNode->setColor(RED);
+    }
+    else{
+      replacementNode->setColor(BLACK);
+    }
+    */
   }
   // end of standard BST delete
 
   // ------------------------------ Handle colors ------------------------------
-  if (replacementNode->getColor() == "RED" || deletedNode->getColor() == "RED"){
-    // Either u or v is red, make replacementNode color black
-    replacementNode->setColor(BLACK);
+  cout << "deleted node: " << deletedNode->key << endl;
+  // take out deleted node
+
+  // Changes direction of pointer of realReplacementNode (most likely the null node)
+  // This section of code fixes the case where the successor (or predecessor) is the node right below the current one
+  RBTreeNode *realReplacementNode;
+  RBTreeNode *realReplacementNodeParent;
+  if (successorUsed == true && successorIsRightBelow == false){
+    realReplacementNode = sp->left;
+  }
+  else if (successorUsed == false && successorIsRightBelow == false){
+    realReplacementNode = sp->right;
+  }
+  else if (successorUsed == false && successorIsRightBelow == true){
+    realReplacementNode = sp->left->left;
   }
   else{
-    // Both nodes are black, replacementNode now marked as DOUBLE BLACK
-    if (replacementNode->getColor() == "BLACK" || deletedNode->getColor() == "BLACK"){
-      // I don't trust the else statement
-      cout << "Ladies and gentleman: A double black" << endl;
-      if (replacementNode == NULL){
-        fixDoubleBlack(parent, replacementNode);
+    realReplacementNode = sp->right->right;
+  }
+
+
+  // Makes color shift depending colors of replacementNode and realReplacementNode
+  cout << "sp=" << sp->key << endl;
+  if (successorUsed){
+    realReplacementNode = sp->left;
+    realReplacementNodeParent = sp;
+    if (successorIsRightBelow){
+      realReplacementNode = sp->right->right;
+      realReplacementNodeParent = sp->right;
+    }
+
+    if (replacementNode->getColor() == "RED" || realReplacementNode->getColor() == "RED"){
+      // Either u or v is red, make replacementNode color black
+      cout << "changing pointer to black." << endl;
+      realReplacementNode->setColor(BLACK);
+    }
+    else{
+      // Double black found
+      cout << "double black found in successor" << endl;
+      if (successorIsRightBelow){
+        if (realReplacementNodeParent->getColor() == "RED"){
+          realReplacementNodeParent->setColor(BLACK);
+        }
+        else{
+          realReplacementNodeParent->setColor(RED);
+        }
       }
-      else{
-        fixDoubleBlack(parent, replacementNode);
+      fixDoubleBlack(realReplacementNodeParent, realReplacementNode);
+    }
+  }
+  // predecessor used and NOT successor
+  else{
+
+    realReplacementNode = sp->right;
+    realReplacementNodeParent = sp;
+    cout << "sp color: " << sp->getColor() << endl;
+    if (successorIsRightBelow){
+      realReplacementNode = sp->left->left;
+      realReplacementNodeParent = sp->left;
+      cout << "sp changed to " << sp->left->key << ". color now: " << sp->left->getColor() << endl;
+    }
+
+    //cout << replacementNode->key << endl;
+
+    if (replacementNode->getColor() == "RED" || realReplacementNode->getColor() == "RED"){
+      // Either u or v is red, make replacementNode color black
+      cout << "changing pointer to black." << endl;
+      realReplacementNode->setColor(BLACK);
+    }
+    else{
+      // Double black found
+      cout << "double black found in predecessor" << endl;
+      if (successorIsRightBelow){
+        if (realReplacementNodeParent->getColor() == "RED"){
+          realReplacementNodeParent->setColor(BLACK);
+        }
+        else{
+          realReplacementNodeParent->setColor(RED);
+        }
       }
+      fixDoubleBlack(realReplacementNodeParent, realReplacementNode);
     }
   }
 
   return true;
 }
 
-RBTreeNode* RBTree::getSuccessor(RBTreeNode *d){ // d is the node to be deleted
+// rewrite
+RBTreeNode* RBTree::getSuccessor(RBTreeNode *d, RBTreeNode** successorParent, bool* successorUsed, bool* successorIsRightBelow){ // d is the node to be deleted
   // the successor can either be the largest number less than d
   // or the smallest number greater than d.
   // Either of these work --> it doesn't matter which route you take --> it's personal preference
@@ -304,14 +402,96 @@ RBTreeNode* RBTree::getSuccessor(RBTreeNode *d){ // d is the node to be deleted
     current = current->left;
   }
   // we made it here, that means we found our successor
+
+  // Check if successor should be used and not the predecessor
+  // Rule = if (successor == red OR successor != black leaf) then use successor
+  // Otherwise/else --> use predecessor
+  if (successor->right->getColor() != "RED" && successor->getColor() != "RED"){
+    // we should use predecessor instead of successor
+    cout << "Grabbing predecessor instead" << endl;
+    return getPredecessor(d, successorParent, successorUsed, successorIsRightBelow);
+  }
+
   if (successor != d->right){
+
+    // change checker variable
+    *successorIsRightBelow = false;
+
+    // Check for double black HERE
+    // v - node to be deleted - successor
+    // u - node to replace - successor->right
+    bool isDoubleBlack;
+    if (successor->getColor() == "BLACK" && successor->right->getColor() == "BLACK"){
+      // double black here --> needs to be fixed
+      //successor->right->setColor(DOUBLEBLACK);
+      cout << "double black detected" << endl;
+      //fixDoubleBlack
+    }
+
     // if our successor is NOT just the node right of our deleted node
     // i.e. the tree is complicated and we have some work to do
     sp->left = successor->right;
     successor->right = d->right;
   }
+  else{
+    // Sets successor's parent to d if d->right is successor and flips boolean
+    // this allow the direction of sp's pointer to switch (since it is different in this case)
+    *successorParent = d;
+    *successorIsRightBelow = true;
+    cout << "succesor parent is d and successorIsRightBelow is true" << endl;
+  }
+  *successorParent = sp;
+  *successorUsed = true;
   return successor;
 
+}
+
+// rewrite
+RBTreeNode* RBTree::getPredecessor(RBTreeNode *d, RBTreeNode** successorParent, bool* successorUsed, bool* successorIsRightBelow){ // d is the node to be deleted
+  // the successor can either be the largest number less than d
+  // or the smallest number greater than d.
+  // Either of these work --> it doesn't matter which route you take --> it's personal preference
+  // in this case, we will be choosing the former --> left once than all the way right
+  RBTreeNode *current = d->left;
+  RBTreeNode *sp = d; // Successor's Parent
+  RBTreeNode *successor = d;
+
+  while(current != NULL){
+    sp = successor;
+    successor = current;
+    current = current->right;
+  }
+  // we made it here, that means we found our successor
+  if (successor != d->left){
+
+    // change checker variable
+    *successorIsRightBelow = false;
+
+    // Check for double black HERE
+    // v - node to be deleted - successor
+    // u - node to replace - successor->left
+    bool isDoubleBlack;
+    if (successor->getColor() == "BLACK" && successor->left->getColor() == "BLACK"){
+      // double black here --> needs to be fixed
+      //successor->left->setColor(DOUBLEBLACK);
+      cout << "double black detected" << endl;
+    }
+
+    // if our successor is NOT just the node right of our deleted node
+    // i.e. the tree is complicated and we have some work to do
+    sp->right = successor->left;
+    successor->left = d->left;
+  }
+  else{
+    // Sets successor's parent to d if d->left is successor and flips boolean
+    // this allow the direction of sp's pointer to switch (since it is different in this case)
+    *successorParent = d;
+    *successorIsRightBelow = true;
+    cout << "succesor parent is d and successorIsRightBelow is true" << endl;
+  }
+  *successorParent = sp;
+  *successorUsed = false;
+  return successor;
 }
 
 void RBTree::fixDoubleRed(RBTreeNode *node){
@@ -421,22 +601,25 @@ void RBTree::fixDoubleRed(RBTreeNode *node){
 }
 
 void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
-  cout << "fixing double black" << endl;
+  cout << "fixing double black. parent = " << parent->key << ". node = " << node << endl;
   // Case 1: Root
   if (node == root){
     node->setColor(BLACK);
+    return;
   }
 
   // Has search loop find the parent if the double black node is NULL
   bool dblBlackNull;
   bool isLeft;
   if (node == NULL){
+    cout << "parent->left: " << parent->left << endl;
     if (parent->left != NULL){
       isLeft = false;
     }
     else{
       isLeft = true;
     }
+    cout << "node is null. isLeft is: " << isLeft << endl;
     node = parent;
     dblBlackNull = true;
   }
@@ -449,7 +632,8 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
   int value = node->key;
   cout << "looking for value : " << value << endl;
   while (current->key != value || dblBlackNull == true){
-    grandparentNode = parent;
+    cout << "running loop. current = " << current->key << ". color= " << current->getColor() << endl;
+    grandparentNode = parentNode;
     parentNode = current;
 
     if (value < current->key){
@@ -461,7 +645,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
       lastTurnLeft = false;
     }
     else{
-      // current->key = value, which means current is the root, which means the double black node is NULL
+      // current->key = value, which means the double black node is NULL
       if (isLeft == true){
         current = current->left;
         lastTurnLeft = true;
@@ -470,11 +654,12 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
         current = current->right;
         lastTurnLeft = false;
       }
+      cout << "about to break" << endl;
       break;
     }
   }
   // Found double black node
-  cout << "Found double black node to delete" << endl;
+  //cout << "Found double black node to delete: " << current->key << endl;
   // Declare more family members: sibling and nephewLeft and nephewRight
   RBTreeNode *sibling;
   bool siblingIsLeftChild;
@@ -486,11 +671,12 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     cout << "double black node is left child" << endl;
   }
   else{
+    cout << "parent node: " << parentNode->key << endl;
     sibling = parentNode->left;
     siblingIsLeftChild = true;
     cout << "double black node is right child" << endl;
   }
-  cout << "sibling: " << sibling << endl;
+  cout << "sibling: " << sibling->key << endl;
   nephewLeft = sibling->left;
   nephewRight = sibling->right;
 
@@ -500,11 +686,11 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     cout << "sibling is red" << endl;
     // sibling is right child
     if (lastTurnLeft == true){
-      rotateSideHeavyLeft(sibling, parentNode, NULL);
+      rotateSideHeavyLeft(sibling, parentNode, grandparentNode);
     }
     // sibling is left child
     else{
-      rotateSideHeavyRight(sibling, parentNode, NULL);
+      rotateSideHeavyRight(sibling, parentNode, grandparentNode);
     }
     // Color FLIP
     sibling->setColor(BLACK);
@@ -512,16 +698,22 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     // Recursion!
     fixDoubleBlack(parentNode, current);
   }
+
+  cout << "parent node: " << parentNode->key << endl;
+  cout << "parent node color: " << parentNode->getColor() << endl;
+
   // Case 3: Sibling is black and BOTH nephews are black
   if (sibling->getColor() == "BLACK" && nephewLeft->getColor() == "BLACK" && nephewRight->getColor() == "BLACK"){
     cout << "case 3, sibling and both nephews black" << endl;
     // If parent is black --> recolor sibling and set the parent to double black; recur
     if (parentNode->getColor() == "BLACK"){
+      cout << "parent is black --> recur" << endl;
       sibling->setColor(RED);
       fixDoubleBlack(grandparentNode, parentNode);
     }
     // Else, parent is red --> recolor and done!
     else{
+      cout << "parent is red!" << endl;
       parentNode->setColor(BLACK);
       sibling->setColor(RED);
     }
@@ -554,8 +746,11 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     // Left Left Case --> side heavy rotation to the right
     if (siblingIsLeftChild == true && nephewLeft->getColor() == "RED"){
       cout << "Left Left case, side heavy" << endl;
+      cout << "gp node: " << grandparentNode->key << endl;
       rotateSideHeavyRight(sibling, parentNode, grandparentNode);
       nephewLeft->setColor(BLACK);
+      sibling->setColor(RED);
+      parentNode->setColor(BLACK);
     }
 
     // Right Right Case --> side heavy rotation to the left
@@ -563,6 +758,8 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
       cout << "Right Right case, side heavy" << endl;
       rotateSideHeavyLeft(sibling, parentNode, grandparentNode);
       nephewRight->setColor(BLACK);
+      sibling->setColor(RED);
+      parentNode->setColor(BLACK);
     }
   }
 
@@ -600,9 +797,11 @@ void RBTree::rotateSideHeavyRight(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode
     greatGP->right = parent;
   }
   else if (greatGP->left == gp){ // grandparent is LEFT child
+    cout << "we should be good" << endl;
     greatGP->left = parent;
   }
   else{ // grandparent is not child of greatGP, meaning grandparent is root --> move root to parent
+    cout << "the problem" << endl;
     root = parent;
   }
   // Pointer updates
