@@ -23,29 +23,62 @@ int main(int argc, char** argv){
   myTree->insert(102);
   myTree->insert(103);
   myTree->insert(104);
+  myTree->insert(105);
+  myTree->insert(110);
+  myTree->insert(120);
+  myTree->insert(130);
+  myTree->insert(140);
+  myTree->insert(280);
+  myTree->insert(281);
+  myTree->insert(282);
+  myTree->insert(283);
+  myTree->insert(284);
+  myTree->insert(285);
+  myTree->insert(286);
+  myTree->insert(287);
+  myTree->insert(288);
+  myTree->insert(288); // Node already in tree, node not added
   myTree->printTree();
   myTree->printTree();
-  myTree->deleteNode(34); // Case 4->Left Left
+  myTree->deleteNode(34); // Case 4 -> Left Left
   myTree->printTree();
-  myTree->deleteNode(56); // Case 3->red
+  myTree->deleteNode(56); // Case 3 -> Black, Case 4 -> Right Right
   myTree->printTree();
-  myTree->deleteNode(30);
+  myTree->deleteNode(30); // node is correct color, move on without correction
   myTree->printTree();
-  myTree->deleteNode(20);
+  myTree->deleteNode(20); // single color shift to black
   myTree->printTree();
-  myTree->deleteNode(10); // Case 3->red
+  myTree->deleteNode(280);
   myTree->printTree();
-  myTree->deleteNode(50); // Case 2 SEG FAULT
+  myTree->deleteNode(281);
+  myTree->printTree();
+  myTree->deleteNode(282); // Case 4 -> Left Right and Left Left
+  myTree->printTree();
+  myTree->deleteNode(283);
+  myTree->printTree();
+  myTree->deleteNode(284);
+  myTree->printTree();
+  myTree->deleteNode(285);
+  myTree->printTree();
+  myTree->deleteNode(286); // Case 3 -> Red
+  myTree->printTree();
+  myTree->deleteNode(287);
+  myTree->printTree();
+  myTree->deleteNode(288); // Case 1 (root)
+  myTree->printTree();
+  myTree->deleteNode(10);
+  myTree->printTree();
+  myTree->deleteNode(50);
   myTree->printTree();
   myTree->deleteNode(42);
   myTree->printTree();
-  myTree->deleteNode(85); // Case 3->black and Case 1
+  myTree->deleteNode(85);
   myTree->printTree();
-  myTree->deleteNode(5);
+  myTree->deleteNode(5); // Case 2
   myTree->printTree();
   myTree->deleteNode(100);
   myTree->printTree();
-  myTree->deleteNode(101);
+  myTree->deleteNode(101); // Case 4 -> Right Left and Right Right
   myTree->printTree();
   myTree->deleteNode(102);
   myTree->printTree();
@@ -53,65 +86,41 @@ int main(int argc, char** argv){
   myTree->printTree();
   myTree->deleteNode(104);
   myTree->printTree();
+  myTree->deleteNode(105);
+  myTree->printTree();
+  myTree->deleteNode(110);
+  myTree->printTree();
+  myTree->deleteNode(120);
+  myTree->printTree();
+  myTree->deleteNode(130);
+  myTree->printTree();
+  myTree->deleteNode(140);
+  myTree->printTree();
   myTree->deleteNode(3); // deleting node that doesn't exist
   myTree->deleteNode(2); // deleting LAST node
   myTree->printTree();
   myTree->deleteNode(2); // delete from an empty tree
-  /*
-  // New tree
-  myTree->insert(69);
-  myTree->insert(12);
-  myTree->insert(30);
-  myTree->insert(47);
-  myTree->insert(4);
-  myTree->insert(96);
-  myTree->printTree();
-  myTree->deleteNode(12);
-  myTree->printTree();
-  myTree->deleteNode(4);
-  myTree->printTree();
-  myTree->deleteNode(30);
-  myTree->printTree();
-  myTree->deleteNode(47);
-  myTree->printTree();
-  myTree->deleteNode(96);
-  myTree->printTree();
-  myTree->deleteNode(69);
-  myTree->printTree();
-  */
-  /*
-  myTree->insert(22);
-  myTree->insert(12);
-  myTree->insert(30);
-  myTree->printTree();
-  myTree->insert(40);
-  myTree->printTree();
-  myTree->insert(50);
-  myTree->printTree();
-  myTree->insert(60);
-  myTree->printTree();
-  myTree->insert(70);
-  myTree->printTree();
-  myTree->insert(80);
-  myTree->printTree();
-  myTree->insert(35);
+
+  // All cases met except fixDoubleRed 2.1 and 2.2
+  // Attempting to satisfy with new tree inserts
+  myTree->insert(500);
+  myTree->insert(400);
+  myTree->insert(600);
+  myTree->insert(300);
+  myTree->insert(200);
+  myTree->insert(100);
+  myTree->insert(700);
+  myTree->insert(450);
+  myTree->insert(650); // Case 2.1
   myTree->insert(10);
-  myTree->insert(5);
-  myTree->insert(15);
-  myTree->insert(17);
-  myTree->printTree();
+  myTree->insert(12);
   myTree->insert(11);
+  myTree->insert(13);
+  myTree->insert(14);
+  myTree->insert(15); // Case 2.2
   myTree->printTree();
-  myTree->insert(95);
-  myTree->insert(96);
-  myTree->insert(97);
-  myTree->insert(98);
-  myTree->insert(99);
-  myTree->insert(75);
-  myTree->insert(76);
-  myTree->insert(77);
-  myTree->printTree();
-  */
+
+  delete myTree;
 
   return 0;
 }

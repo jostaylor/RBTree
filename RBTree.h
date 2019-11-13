@@ -22,6 +22,7 @@ class RBTree{
     RBTreeNode* getMin();
     RBTreeNode* getMax();
     void recPrint(RBTreeNode *node); // recursive print
+    void recDelete(RBTreeNode *node); // recursive delete (for destructor)
 
     void fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node);
     void fixDoubleRed(RBTreeNode *node);
@@ -34,6 +35,19 @@ class RBTree{
 
 RBTree::RBTree(){
   root = NULL;
+}
+
+RBTree::~RBTree(){
+  recDelete(root);
+  cout << "Tree successfully deleted" << endl;
+}
+
+void RBTree::recDelete(RBTreeNode *node){
+  if (node){
+    recDelete(node->left);
+    recDelete(node->right);
+    delete node;
+  }
 }
 
 bool RBTree::isEmpty(){
@@ -95,12 +109,13 @@ RBTreeNode* RBTree::getMin(){
 
 void RBTree::insert(int value){
 
+  cout << "Attempting to insert " << value << " into the tree." << endl;
+
   // check if value exists in tree already before proceding
   // every key is unique, so if it is already in the tree, we cannot insert
   if (search(value) == true){
     // node already in tree
     cout << "Node already in tree. Cannot add " << value << endl;
-    exit(1);
   }
   // Value doesn't exist in tree --> able to insert
   else{
@@ -374,7 +389,7 @@ bool RBTree::deleteNode(int value){
     }
 
   }
-  // Less than children of deleted node --> fix variables as needed
+  // Less than 2 children of deleted node --> no successor/predecessor used --> fix variables as needed
   else{
     // sets replacementNode to current ie the node that was DELETED (not in tree hierarchy anymore)
     replacementNode = current; // replacementNode would be succesor if successor/predecessor was used
@@ -506,6 +521,7 @@ void RBTree::fixDoubleRed(RBTreeNode *node){
   int value = node->key;
   bool lastTurnLeft = true;
   bool secondLastTurnLeft = true;
+
   while (current->key != value){
 
     greatGP = gp;
@@ -524,6 +540,7 @@ void RBTree::fixDoubleRed(RBTreeNode *node){
     }
 
   }
+  // Loop is over and the node has been found
   cout << "found node " << value << endl;
 
   // ----- finds uncle and checks if uncle is red or black -----
@@ -540,7 +557,7 @@ void RBTree::fixDoubleRed(RBTreeNode *node){
 
   // Uncle is red ------------ COLOR FLIP
   if (uncle->isRed()){
-    cout << "uncle is red --> recoloring" << endl;
+    cout << "Case 1: Uncle is red --> recoloring" << endl;
     // parent and uncle (parent's sibling) turn to black
     parent->setColor(BLACK);
     uncle->setColor(BLACK);
@@ -553,34 +570,38 @@ void RBTree::fixDoubleRed(RBTreeNode *node){
     // Check for another instance of double red
     if (greatGP->getColor() == "RED"){
       // both grandparent and great-grandparent are red --> recur
-      cout << "Double red detected -- recur" << endl;
+      cout << "Case 1.5: Another double red detected -- RECUR" << endl;
       fixDoubleRed(gp);
     }
   }
   // Uncle is black ----------- ROTATION
   else{
-    cout << "uncle is black --> rotating" << endl;
+    cout << "Case 2: Uncle is black --> rotating" << endl;
 
     // Case Right-then-Left --- Triangle
     if (lastTurnLeft == true && secondLastTurnLeft == false){
-      cout << "rotation triangle" << endl;
+      cout << "Case 2.1: rotate triangle left" << endl;
       rotateTriangleLeft(current, parent, gp);
       RBTreeNode *temp = current;
       current = parent;
       parent = temp;
+      // Change direction of last turn after rotation
+      lastTurnLeft = false;
     }
     // Case Left-then-Right --- Triangle
     else if (lastTurnLeft == false && secondLastTurnLeft == true){
-      cout << "rotation triangle" << endl;
+      cout << "Case 2.2: rotation triangle right" << endl;
       rotateTriangleRight(current, parent, gp);
       RBTreeNode *temp = current;
       current = parent;
       parent = temp;
+      // Change direction of last turn after rotation
+      lastTurnLeft = true;
     }
 
     // Case Right-Right --- Side Heavy
     if (lastTurnLeft == false && secondLastTurnLeft == false){
-      cout << "rotation side heavy" << endl;
+      cout << "Case 2.3: rotation side heavy left" << endl;
       rotateSideHeavyLeft(parent, gp, greatGP);
       // Flipping colors after rotation
       current->setColor(RED);
@@ -590,7 +611,7 @@ void RBTree::fixDoubleRed(RBTreeNode *node){
 
     // Case Left-Left --- Side Heavy --- (lastTurnLeft == true && secondLastTurnLeft == true)
     else{
-      cout << "rotation side heavy" << endl;
+      cout << "Case 2.4: rotation side heavy right" << endl;
       rotateSideHeavyRight(parent, gp, greatGP);
       // Flipping colors after rotation
       current->setColor(RED);
@@ -702,7 +723,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
   }
 
   // Case 3: Sibling is black and BOTH nephews are black
-  if (sibling->getColor() == "BLACK" && nephewLeft->getColor() == "BLACK" && nephewRight->getColor() == "BLACK"){
+  else if (sibling->getColor() == "BLACK" && nephewLeft->getColor() == "BLACK" && nephewRight->getColor() == "BLACK"){
     cout << "Case 3: Sibling and both Nephews are black" << endl;
     // If parent is black --> recolor sibling and set the parent to double black; recur
     if (parentNode->getColor() == "BLACK"){
@@ -715,22 +736,21 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
       cout << "Parent is red! Change colors and Done!" << endl;
       parentNode->setColor(BLACK);
       sibling->setColor(RED);
-      cout << sibling->getColor() << endl;
     }
-    cout << sibling->getColor() << endl;
+
   }
-  cout << "hmm: " << sibling->getColor() << endl;
+
   // Case 4: If sibling is black and at least one nephew is red
-  if (sibling->getColor() == "BLACK" && (nephewLeft->getColor() == "RED" || nephewRight->getColor() == "RED")){
-    cout << sibling->getColor() << endl;
+  else if (sibling->getColor() == "BLACK" && (nephewLeft->getColor() == "RED" || nephewRight->getColor() == "RED")){
     cout << "Case 4: At least one Nephew is red" << endl;
     // Left Right Case --> Double rotation
     // Triangle rotation to the right, then side heavy right rotation
     if (siblingIsLeftChild == true && nephewRight->getColor() == "RED" && nephewLeft->getColor() == "BLACK"){
       cout << "Left Right case, triangle rotation then change colors." << endl;
-      rotateTriangleLeft(nephewRight, sibling, parentNode);
+      rotateTriangleRight(nephewRight, sibling, parentNode);
       nephewLeft = sibling;
       sibling = nephewRight;
+      // Change colors
       sibling->setColor(BLACK);
       nephewLeft->setColor(RED);
     }
@@ -739,28 +759,61 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     // Triangle rotation to the left, then side heavy left rotation
     if (siblingIsLeftChild == false && nephewLeft->getColor() == "RED" && nephewRight->getColor() == "BLACK"){
       cout << "Right Left case, triangle rotation then change colors." << endl;
-      rotateTriangleRight(nephewLeft, sibling, parentNode);
+      rotateTriangleLeft(nephewLeft, sibling, parentNode);
       nephewRight = sibling;
       sibling = nephewLeft;
+      // Change colors
       sibling->setColor(BLACK);
       nephewRight->setColor(RED);
     }
 
     // Left Left Case --> side heavy rotation to the right
     if (siblingIsLeftChild == true && nephewLeft->getColor() == "RED"){
+      // Save color of old parent before rotation
+      bool oldParentWasRed;
+      if (parentNode->getColor() == "RED"){
+        oldParentWasRed = true;
+      }
+      else{
+        oldParentWasRed = false;
+      }
+
       cout << "Left Left case, side heavy rotation then change colors." << endl;
       rotateSideHeavyRight(sibling, parentNode, grandparentNode);
+
+      // Change colors
+      if (oldParentWasRed){
+        sibling->setColor(RED);
+      }
+      else{
+        sibling->setColor(BLACK);
+      }
       nephewLeft->setColor(BLACK);
-      sibling->setColor(RED);
       parentNode->setColor(BLACK);
     }
 
     // Right Right Case --> side heavy rotation to the left
     if (siblingIsLeftChild == false && nephewRight->getColor() == "RED"){
+      // Save color of old parent before rotation
+      bool oldParentWasRed;
+      if (parentNode->getColor() == "RED"){
+        oldParentWasRed = true;
+      }
+      else{
+        oldParentWasRed = false;
+      }
+
       cout << "Right Right case, side heavy rotation then change colors." << endl;
       rotateSideHeavyLeft(sibling, parentNode, grandparentNode);
+
+      // Change colors
+      if (oldParentWasRed){
+        sibling->setColor(RED);
+      }
+      else{
+        sibling->setColor(BLACK);
+      }
       nephewRight->setColor(BLACK);
-      sibling->setColor(RED);
       parentNode->setColor(BLACK);
     }
   }
