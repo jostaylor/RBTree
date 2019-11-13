@@ -102,49 +102,51 @@ void RBTree::insert(int value){
     cout << "Node already in tree. Cannot add " << value << endl;
     exit(1);
   }
-
-  RBTreeNode *node = new RBTreeNode(value);
-
-  if (root == NULL){ // empty tree
-    node->setColor(BLACK);
-    cout << "inserting first node into tree" << endl;
-    root = node;
-  }
+  // Value doesn't exist in tree --> able to insert
   else{
-    // tree is not empty
-    // let's find the insertion point
-    RBTreeNode *current = root;
-    RBTreeNode *parent = NULL;
+    RBTreeNode *node = new RBTreeNode(value);
 
-    int deez = 0;
-    int nuts = 0;
-    while(deez == nuts){
-      parent = current;
-
-      if (value < current->key){
-        // go left
-        current = current->left;
-
-        if (current == NULL){ // found insertion point
-          parent->left = node;
-          break;
-        }
-      }
-      else{
-        // go right
-        current = current->right;
-
-        if (current == NULL){ // found the insertion point
-          parent->right = node;
-          break;
-        }
-      }
+    if (root == NULL){ // empty tree
+      node->setColor(BLACK);
+      cout << "inserting first node into tree" << endl;
+      root = node;
     }
-    cout << "Node inserted successfully" << endl;
-    // check for double red
-    if (parent->isRed() && node->isRed()){
-      cout << "Double red detected --> fixing double red" << endl;
-      fixDoubleRed(node);
+    else{
+      // tree is not empty
+      // let's find the insertion point
+      RBTreeNode *current = root;
+      RBTreeNode *parent = NULL;
+
+      int deez = 0;
+      int nuts = 0;
+      while(deez == nuts){
+        parent = current;
+
+        if (value < current->key){
+          // go left
+          current = current->left;
+
+          if (current == NULL){ // found insertion point
+            parent->left = node;
+            break;
+          }
+        }
+        else{
+          // go right
+          current = current->right;
+
+          if (current == NULL){ // found the insertion point
+            parent->right = node;
+            break;
+          }
+        }
+      }
+      cout << "Node inserted successfully" << endl;
+      // check for double red
+      if (parent->isRed() && node->isRed()){
+        cout << "Double red detected --> fixing double red" << endl;
+        fixDoubleRed(node);
+      }
     }
   }
 }
@@ -176,8 +178,11 @@ bool RBTree::search(int value){
 
 bool RBTree::deleteNode(int value){
   cout << "Deleting " << value << endl;
-  if (root == NULL) // tree is empty
+  // Tree is empty check
+  if (root == NULL){
+    cout << "Tree is empty; nothing to delete." << endl;
     return false;
+  }
 
   RBTreeNode *parent = root;
   RBTreeNode *current = root;
@@ -201,12 +206,14 @@ bool RBTree::deleteNode(int value){
 
     if (current == NULL){
       // value doesn't exist
+      cout << "Cannot find value in tree, aborting" << endl;
       return false;
     }
   }
 
   // if we make it here, then we have found the node to be deleted
   cout << "found node to be deleted: " << current->key << ". Node color: " << current->getColor() << endl;
+  // Declare variables
   RBTreeNode *replacementNode;
   RBTreeNode *realReplacementNode;
   RBTreeNode *sp = parent;
@@ -216,8 +223,11 @@ bool RBTree::deleteNode(int value){
   bool deletedNodeWasRed;
   RBTreeNode *deletedNode = current;
 
+  // Check how many children the node has
   // if node is external / has 0 children / is a leaf
   if (current->left == NULL && current->right == NULL){
+
+    cout << "Node to be deleted has 0 children. It will be replaced by NULL leaf" << endl;
 
     realReplacementNode = NULL; // save for color flip
 
@@ -236,6 +246,8 @@ bool RBTree::deleteNode(int value){
   // if node has 1 child; and it's a left (no right child)
   else if (current->right == NULL){
 
+    cout << "Node to be deleted has 1 child. It will be replaced by left child" << endl;
+
     realReplacementNode = current->left; // save for color flip
 
     if (current == root){
@@ -250,6 +262,8 @@ bool RBTree::deleteNode(int value){
   }
   // if node has 1 child; and it's a right (no left child)
   else if (current->left == NULL){
+
+    cout << "Node to be deleted has 1 child. It will be replaced by right child" << endl;
 
     realReplacementNode = current->right; // save for color flip
 
@@ -266,6 +280,8 @@ bool RBTree::deleteNode(int value){
   // if the node has 2 children --> uh oh lmao
   // get ready to rumble
   else{
+
+    cout << "Node to be deleted has 2 children. Finding successor..." << endl;
 
     succesorUsed = true;
     RBTreeNode *successor;
@@ -341,9 +357,15 @@ bool RBTree::deleteNode(int value){
 
     // Make color check here
     if (deletedNodeWasRed == true || realReplacementNode->getColor() == "RED"){
-      // Either u or v is red, make replacementNode color black
-      cout << "changing pointer to black." << endl;
-      realReplacementNode->setColor(BLACK);
+      // Either u or v is red
+      // If it was the deleted node that red, do nothing, else, change the node color
+      if (deletedNodeWasRed != true){ // the other node MUST be red --> COLOR CHANGE
+        cout << "changing color of node to black." << endl;
+        realReplacementNode->setColor(BLACK);
+      }
+      else{ // do not change color, good as is
+        cout << "Node is correct color. Moving on." << endl;
+      }
     }
     else{
       // Double black found
@@ -354,16 +376,23 @@ bool RBTree::deleteNode(int value){
   }
   // Less than children of deleted node --> fix variables as needed
   else{
-    replacementNode = current; // replacementNode is succesor if successor/predecessor was used
+    // sets replacementNode to current ie the node that was DELETED (not in tree hierarchy anymore)
+    replacementNode = current; // replacementNode would be succesor if successor/predecessor was used
 
     cout << "sp=" << sp->key << endl;
 
     // Make color check here
     // Makes color shift depending colors of replacementNode and realReplacementNode
     if (replacementNode->getColor() == "RED" || realReplacementNode->getColor() == "RED"){
-      // Either u or v is red, make replacementNode color black
-      cout << "changing pointer to black." << endl;
-      realReplacementNode->setColor(BLACK);
+      // Either u or v is red
+      // If it was the deleted node that red, do nothing, else, change the node color
+      if (realReplacementNode->getColor() == "RED"){ // COLOR CHANGE
+        cout << "changing color of node to black." << endl;
+        realReplacementNode->setColor(BLACK);
+      }
+      else{ // do not change color, good as is
+        cout << "Node is correct color. Moving on." << endl;
+      }
     }
     else{
       // Double black found
@@ -406,17 +435,6 @@ RBTreeNode* RBTree::getSuccessor(RBTreeNode *d, RBTreeNode** successorParent, bo
     // change checker variable
     *successorIsRightBelow = false;
 
-    // Check for double black HERE
-    // v - node to be deleted - successor
-    // u - node to replace - successor->right
-    bool isDoubleBlack;
-    if (successor->getColor() == "BLACK" && successor->right->getColor() == "BLACK"){
-      // double black here --> needs to be fixed
-      //successor->right->setColor(DOUBLEBLACK);
-      cout << "double black detected" << endl;
-      //fixDoubleBlack
-    }
-
     // if our successor is NOT just the node right of our deleted node
     // i.e. the tree is complicated and we have some work to do
     sp->left = successor->right;
@@ -457,16 +475,6 @@ RBTreeNode* RBTree::getPredecessor(RBTreeNode *d, RBTreeNode** successorParent, 
 
     // change checker variable
     *successorIsRightBelow = false;
-
-    // Check for double black HERE
-    // v - node to be deleted - successor
-    // u - node to replace - successor->left
-    bool isDoubleBlack;
-    if (successor->getColor() == "BLACK" && successor->left->getColor() == "BLACK"){
-      // double black here --> needs to be fixed
-      //successor->left->setColor(DOUBLEBLACK);
-      cout << "double black detected" << endl;
-    }
 
     // if our successor is NOT just the node right of our deleted node
     // i.e. the tree is complicated and we have some work to do
@@ -598,16 +606,16 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
   cout << "fixing double black. parent = " << parent->key << ". node = " << node << endl;
   // Case 1: Root
   if (node == root){
-    cout << "Double black node is root. Changing to black and done." << endl;
+    cout << "Case 1: Double black node is root. Changing to black and done." << endl;
     node->setColor(BLACK);
     return;
   }
 
-  // Has search loop find the parent if the double black node is NULL
+  // If the double black node is NULL, the search loop will find the parent instead
   bool dblBlackNull;
   bool isLeft;
   if (node == NULL){
-    cout << "parent->left: " << parent->left << endl;
+
     if (parent->left != NULL){
       isLeft = false;
     }
@@ -626,6 +634,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
   bool lastTurnLeft;
   int value = node->key;
   cout << "looking for value : " << value << endl;
+  // Second conditional added so that the else statement can run in the case of double black NULL node
   while (current->key != value || dblBlackNull == true){
     cout << "running loop. current = " << current->key << ". color= " << current->getColor() << endl;
     grandparentNode = parentNode;
@@ -641,6 +650,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     }
     else{
       // current->key = value, which means the double black node is NULL
+      cout << "Parent of NULL node found in tree. Setting current to NULL node." << endl;
       if (isLeft == true){
         current = current->left;
         lastTurnLeft = true;
@@ -649,12 +659,10 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
         current = current->right;
         lastTurnLeft = false;
       }
-      cout << "about to break" << endl;
       break;
     }
   }
   // Found double black node
-  //cout << "Found double black node to delete: " << current->key << endl;
   // Declare more family members: sibling and nephewLeft and nephewRight
   RBTreeNode *sibling;
   bool siblingIsLeftChild;
@@ -666,19 +674,18 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     cout << "double black node is left child" << endl;
   }
   else{
-    cout << "parent node: " << parentNode->key << endl;
     sibling = parentNode->left;
     siblingIsLeftChild = true;
     cout << "double black node is right child" << endl;
   }
-  cout << "sibling: " << sibling->key << endl;
+  cout << "Sibling of double black node: " << sibling->key  << ". Color of sibling is: " << sibling->getColor() << endl;
   nephewLeft = sibling->left;
   nephewRight = sibling->right;
 
 
   // Case 2: Sibling is RED
   if (sibling->getColor() == "RED"){
-    cout << "sibling is red" << endl;
+    cout << "Case 2: Sibling is Red --> rotate, change colors, and RECUR" << endl;
     // sibling is right child
     if (lastTurnLeft == true){
       rotateSideHeavyLeft(sibling, parentNode, grandparentNode);
@@ -694,32 +701,33 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     fixDoubleBlack(parentNode, current);
   }
 
-  cout << "parent node: " << parentNode->key << endl;
-  cout << "parent node color: " << parentNode->getColor() << endl;
-
   // Case 3: Sibling is black and BOTH nephews are black
   if (sibling->getColor() == "BLACK" && nephewLeft->getColor() == "BLACK" && nephewRight->getColor() == "BLACK"){
-    cout << "case 3, sibling and both nephews black" << endl;
+    cout << "Case 3: Sibling and both Nephews are black" << endl;
     // If parent is black --> recolor sibling and set the parent to double black; recur
     if (parentNode->getColor() == "BLACK"){
-      cout << "parent is black --> recur" << endl;
+      cout << "Parent is black --> change color and RECUR" << endl;
       sibling->setColor(RED);
       fixDoubleBlack(grandparentNode, parentNode);
     }
     // Else, parent is red --> recolor and done!
     else{
-      cout << "Parent is red! Flipping colors" << endl;
+      cout << "Parent is red! Change colors and Done!" << endl;
       parentNode->setColor(BLACK);
       sibling->setColor(RED);
+      cout << sibling->getColor() << endl;
     }
+    cout << sibling->getColor() << endl;
   }
+  cout << "hmm: " << sibling->getColor() << endl;
   // Case 4: If sibling is black and at least one nephew is red
   if (sibling->getColor() == "BLACK" && (nephewLeft->getColor() == "RED" || nephewRight->getColor() == "RED")){
-    cout << "At least one nephew is red" << endl;
+    cout << sibling->getColor() << endl;
+    cout << "Case 4: At least one Nephew is red" << endl;
     // Left Right Case --> Double rotation
     // Triangle rotation to the right, then side heavy right rotation
     if (siblingIsLeftChild == true && nephewRight->getColor() == "RED" && nephewLeft->getColor() == "BLACK"){
-      cout << "Left Right case, triangle" << endl;
+      cout << "Left Right case, triangle rotation then change colors." << endl;
       rotateTriangleLeft(nephewRight, sibling, parentNode);
       nephewLeft = sibling;
       sibling = nephewRight;
@@ -730,7 +738,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
     // Right Left Case --> Double Rotation
     // Triangle rotation to the left, then side heavy left rotation
     if (siblingIsLeftChild == false && nephewLeft->getColor() == "RED" && nephewRight->getColor() == "BLACK"){
-      cout << "Right Left case, triangle" << endl;
+      cout << "Right Left case, triangle rotation then change colors." << endl;
       rotateTriangleRight(nephewLeft, sibling, parentNode);
       nephewRight = sibling;
       sibling = nephewLeft;
@@ -740,8 +748,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
 
     // Left Left Case --> side heavy rotation to the right
     if (siblingIsLeftChild == true && nephewLeft->getColor() == "RED"){
-      cout << "Left Left case, side heavy" << endl;
-      cout << "gp node: " << grandparentNode->key << endl;
+      cout << "Left Left case, side heavy rotation then change colors." << endl;
       rotateSideHeavyRight(sibling, parentNode, grandparentNode);
       nephewLeft->setColor(BLACK);
       sibling->setColor(RED);
@@ -750,7 +757,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
 
     // Right Right Case --> side heavy rotation to the left
     if (siblingIsLeftChild == false && nephewRight->getColor() == "RED"){
-      cout << "Right Right case, side heavy" << endl;
+      cout << "Right Right case, side heavy rotation then change colors." << endl;
       rotateSideHeavyLeft(sibling, parentNode, grandparentNode);
       nephewRight->setColor(BLACK);
       sibling->setColor(RED);
@@ -792,11 +799,9 @@ void RBTree::rotateSideHeavyRight(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode
     greatGP->right = parent;
   }
   else if (greatGP->left == gp){ // grandparent is LEFT child
-    cout << "we should be good" << endl;
     greatGP->left = parent;
   }
   else{ // grandparent is not child of greatGP, meaning grandparent is root --> move root to parent
-    cout << "the problem" << endl;
     root = parent;
   }
   // Pointer updates

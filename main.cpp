@@ -18,28 +18,47 @@ int main(int argc, char** argv){
   myTree->insert(85);
   myTree->insert(5);
   myTree->insert(2);
+  myTree->insert(100);
+  myTree->insert(101);
+  myTree->insert(102);
+  myTree->insert(103);
+  myTree->insert(104);
   myTree->printTree();
-  myTree->deleteNode(34);
   myTree->printTree();
-  myTree->deleteNode(56);
+  myTree->deleteNode(34); // Case 4->Left Left
+  myTree->printTree();
+  myTree->deleteNode(56); // Case 3->red
   myTree->printTree();
   myTree->deleteNode(30);
   myTree->printTree();
   myTree->deleteNode(20);
   myTree->printTree();
-  myTree->deleteNode(10);
+  myTree->deleteNode(10); // Case 3->red
   myTree->printTree();
-  myTree->deleteNode(50);
+  myTree->deleteNode(50); // Case 2 SEG FAULT
   myTree->printTree();
   myTree->deleteNode(42);
   myTree->printTree();
-  myTree->deleteNode(85);
+  myTree->deleteNode(85); // Case 3->black and Case 1
   myTree->printTree();
   myTree->deleteNode(5);
   myTree->printTree();
-  myTree->deleteNode(2);
+  myTree->deleteNode(100);
   myTree->printTree();
+  myTree->deleteNode(101);
+  myTree->printTree();
+  myTree->deleteNode(102);
+  myTree->printTree();
+  myTree->deleteNode(103);
+  myTree->printTree();
+  myTree->deleteNode(104);
+  myTree->printTree();
+  myTree->deleteNode(3); // deleting node that doesn't exist
+  myTree->deleteNode(2); // deleting LAST node
+  myTree->printTree();
+  myTree->deleteNode(2); // delete from an empty tree
   /*
+  // New tree
   myTree->insert(69);
   myTree->insert(12);
   myTree->insert(30);
@@ -50,6 +69,14 @@ int main(int argc, char** argv){
   myTree->deleteNode(12);
   myTree->printTree();
   myTree->deleteNode(4);
+  myTree->printTree();
+  myTree->deleteNode(30);
+  myTree->printTree();
+  myTree->deleteNode(47);
+  myTree->printTree();
+  myTree->deleteNode(96);
+  myTree->printTree();
+  myTree->deleteNode(69);
   myTree->printTree();
   */
   /*
