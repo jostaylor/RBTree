@@ -11,8 +11,9 @@ class RBTree{
     RBTree();
     ~RBTree();
 
+    unsigned int getTreeSize();
     bool search(int value);
-    void insert(int value);
+    bool insert(int value);
     bool deleteNode(int value);
     void printTree();
 
@@ -55,6 +56,10 @@ RBTree::~RBTree(){
   cout << "Tree successfully deleted" << endl;
 }
 
+unsigned int RBTree::getTreeSize(){
+  return treeSize;
+}
+
 void RBTree::recDelete(RBTreeNode *node){
   if (node){
     recDelete(node->left);
@@ -89,7 +94,7 @@ void RBTree::printTree(){
     cout << "Tree is empty. Nothing to print." << endl;
   }
   else{
-    cout << "Tree where root = " << root->key << endl;
+    cout << "Tree where root = " << root->key << ". Tree size = " << getTreeSize() << endl;
     recPrint(root);
   }
 }
@@ -121,7 +126,7 @@ RBTreeNode* RBTree::getMin(){
   return curr;
 }
 
-void RBTree::insert(int value){
+bool RBTree::insert(int value){
 
   cout << "Attempting to insert " << value << " into the tree." << endl;
 
@@ -130,6 +135,7 @@ void RBTree::insert(int value){
   if (search(value) == true){
     // node already in tree
     cout << "Node already in tree. Cannot add " << value << endl;
+    return false;
   }
   // Value doesn't exist in tree --> able to insert
   else{
@@ -177,11 +183,12 @@ void RBTree::insert(int value){
         fixDoubleRed(node);
       }
     }
+    // Increment tree size;
+    treeSize++;
   }
   // Make sure tree is still following its properties/rules
   testallProperties();
-  // Increment tree size;
-
+  return true;
 }
 
 // this function may change to return a RBTreeNode* for assignment_5
@@ -267,6 +274,8 @@ bool RBTree::deleteNode(int value){
     if (current == root){
       cout << "Node to be deleted is the only node in tree. Deleting " << root->key << " and tree is now empty" << endl;
       root = NULL;
+      // Decrement treeSize
+      treeSize--;
       return true;
     }
     else if (isLeft){
@@ -436,6 +445,8 @@ bool RBTree::deleteNode(int value){
 
   // Make sure tree is still following its properties/rules
   testallProperties();
+  // Decrement tree size;
+  treeSize--;
 
   return true;
 }

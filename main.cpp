@@ -4,10 +4,17 @@
 using namespace std;
 
 int main(int argc, char** argv){
-  cout << "test main" << endl;
 
   RBTree *myTree = new RBTree();
-
+  int num;
+  for (int i = 0; i < 5000; ++i){
+    num = (rand() % 10000);
+    while (myTree->insert(num) == false){
+      num = (rand() % 10000);
+    }
+  }
+  myTree->printTree();
+/*
   myTree->insert(34);
   myTree->insert(56);
   myTree->insert(30);
@@ -41,6 +48,7 @@ int main(int argc, char** argv){
   myTree->insert(288); // Node already in tree, node not added
   myTree->printTree();
   myTree->printTree();
+  cout << "size: " << myTree->getTreeSize() << endl;
   myTree->deleteNode(34); // Case 4 -> Left Left
   myTree->printTree();
   myTree->deleteNode(56); // Case 3 -> Black, Case 4 -> Right Right
@@ -89,18 +97,22 @@ int main(int argc, char** argv){
   myTree->printTree();
   myTree->deleteNode(105);
   myTree->printTree();
+  cout << "size: " << myTree->getTreeSize() << endl;
   myTree->deleteNode(110);
   myTree->printTree();
   myTree->deleteNode(120);
   myTree->printTree();
+  cout << "size: " << myTree->getTreeSize() << endl;
   myTree->deleteNode(130);
   myTree->printTree();
   myTree->deleteNode(140);
   myTree->printTree();
+  cout << "size: " << myTree->getTreeSize() << endl;
   myTree->deleteNode(3); // deleting node that doesn't exist
   myTree->deleteNode(2); // deleting LAST node
   myTree->printTree();
   myTree->deleteNode(2); // delete from an empty tree
+  cout << "size: " << myTree->getTreeSize() << endl;
 
   // All cases met except fixDoubleRed 2.1 and 2.2
   // Attempting to satisfy with new tree inserts
@@ -120,8 +132,8 @@ int main(int argc, char** argv){
   myTree->insert(14);
   myTree->insert(15); // Case 2.2
   myTree->printTree();
-
+  cout << "size: " << myTree->getTreeSize() << endl;
+  */
   delete myTree;
-  
   return 0;
 }
