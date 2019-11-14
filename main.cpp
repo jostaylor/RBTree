@@ -20,6 +20,7 @@ int main(int argc, char** argv){
   myTree->insert(2);
   myTree->insert(100);
   myTree->insert(101);
+  myTree->printTree();
   myTree->insert(102);
   myTree->insert(103);
   myTree->insert(104);
@@ -121,6 +122,6 @@ int main(int argc, char** argv){
   myTree->printTree();
 
   delete myTree;
-
+  
   return 0;
 }

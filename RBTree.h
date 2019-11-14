@@ -6,6 +6,7 @@ using namespace std;
 class RBTree{
   private:
     RBTreeNode *root;
+    unsigned int treeSize;
   public:
     RBTree();
     ~RBTree();
@@ -31,10 +32,22 @@ class RBTree{
     void rotateSideHeavyRight(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode *greatGP);
     void rotateSideHeavyLeft(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode *greatGP);
 
+    // Testing functions
+    bool testRootProperty();
+    bool testInternalProperty();
+    bool testExternalProperty();
+    bool testDepthProperty();
+    void recurInternalProperty(RBTreeNode *node, bool* propertyViolated);
+    void recurExternalProperty(RBTreeNode *node, bool* propertyViolated);
+    void recurDepthProperty(RBTreeNode *node, RBTreeNode *parent, int numAncestors, bool* propertyViolated);
+    int getBlackDepth(RBTreeNode *node, RBTreeNode *parent);
+    void testallProperties();
+
 };
 
 RBTree::RBTree(){
   root = NULL;
+  treeSize = 0;
 }
 
 RBTree::~RBTree(){
@@ -67,6 +80,7 @@ void RBTree::recPrint(RBTreeNode *node){
   recPrint(node->left);
   cout << node->key << "\t" << node->getColor() << endl;
   recPrint(node->right);
+
 }
 
 void RBTree::printTree(){
@@ -156,7 +170,7 @@ void RBTree::insert(int value){
           }
         }
       }
-      cout << "Node inserted successfully" << endl;
+      cout << "Inserting node" << endl;
       // check for double red
       if (parent->isRed() && node->isRed()){
         cout << "Double red detected --> fixing double red" << endl;
@@ -164,6 +178,10 @@ void RBTree::insert(int value){
       }
     }
   }
+  // Make sure tree is still following its properties/rules
+  testallProperties();
+  // Increment tree size;
+
 }
 
 // this function may change to return a RBTreeNode* for assignment_5
@@ -333,10 +351,10 @@ bool RBTree::deleteNode(int value){
     }
     // Change color of node succesor to color of replaced deleted node
     if (current->getColor() == "RED"){
-      successor->setColor(RED); // succesor = replacementNode
+      successor->setColor(RED); // successor = replacementNode
     }
     else{
-      successor->setColor(BLACK); // succesor = replacementNode
+      successor->setColor(BLACK); // successor = replacementNode
     }
 
   }
@@ -416,6 +434,8 @@ bool RBTree::deleteNode(int value){
     }
   }
 
+  // Make sure tree is still following its properties/rules
+  testallProperties();
 
   return true;
 }
@@ -860,4 +880,176 @@ void RBTree::rotateSideHeavyRight(RBTreeNode *parent, RBTreeNode *gp, RBTreeNode
   // Pointer updates
   gp->left = parent->right;
   parent->right = gp;
+}
+
+bool RBTree::testRootProperty(){
+  // Root property = the root is always black
+  if (root->getColor() == "BLACK"){
+    return true;
+  }
+  else{
+    cout << "Root property violated" << endl;
+    return false;
+  }
+}
+
+bool RBTree::testInternalProperty(){
+  bool propertyViolated = false;
+  recurInternalProperty(root, &propertyViolated);
+
+  // Made it here --> check if internal property was violated
+  if (propertyViolated){
+    cout << "Internal property was violated!!!" << endl;
+    return false;
+  }
+  // bool never changed --> Property was satisfied
+  else{
+    return true;
+  }
+}
+
+bool RBTree::testExternalProperty(){
+  bool propertyViolated = false;
+  recurExternalProperty(root, &propertyViolated);
+
+  // Made it here --> check if external property is satisfied
+  if (propertyViolated){
+    cout << "External property was violated!!!" << endl;
+    return false;
+  }
+  // bool never changed --> property is SATISFIED
+  else{
+    return true;
+  }
+}
+
+bool RBTree::testDepthProperty(){
+  bool propertyViolated = false;
+  recurDepthProperty(root, NULL, 0, &propertyViolated);
+
+  // Made it here --> check if depth property was SATISFIED
+  if (propertyViolated){
+    cout << "Depth property was violated!!!" << endl;
+    return false;
+  }
+  // bool never changed --> Property was satisfied
+  else{
+    return true;
+  }
+}
+
+void RBTree::recurInternalProperty(RBTreeNode *node, bool* propertyViolated){
+  // Internal Property = If a node is red, its children must be black
+
+  // Traverse tree
+  if (node){
+
+    // If a node is red
+    if (node->getColor() == "RED"){
+      // If its left or right child is red --> property is VIOLATED
+      if (node->left->getColor() == "RED" || node->right->getColor() == "RED"){
+        cout << "Internal property violated!!!" << endl;
+        *propertyViolated = true;
+      }
+    }
+
+    // recur
+    recurInternalProperty(node->left, propertyViolated);
+    recurInternalProperty(node->right, propertyViolated);
+  }
+}
+
+void RBTree::recurExternalProperty(RBTreeNode *node, bool* propertyViolated){
+  if (node){
+    recurExternalProperty(node->left, propertyViolated);
+    recurExternalProperty(node->right, propertyViolated);
+  }
+  // Node is null
+  else{
+    // --> check its color
+    if (node->getColor() == "RED"){
+      // external property is VIOLATED
+      cout << "External Property violated!!!" << endl;
+      *propertyViolated = true;
+    }
+  }
+}
+
+void RBTree::recurDepthProperty(RBTreeNode *node, RBTreeNode *parent, int numAncestors, bool* propertyViolated){
+  // Traverse tree
+  if (node){
+    recurDepthProperty(node->left, node, numAncestors, propertyViolated);
+    recurDepthProperty(node->right, node, numAncestors, propertyViolated);
+  }
+  // Node is null
+  else{
+    // Initialize numAncestors if this is the first null node being visited
+    if (numAncestors == 0){ // set to 0 as unique marker for starting point
+      numAncestors = getBlackDepth(node, parent);
+    }
+    // Every other node --> compare it to original
+    else{
+      if (getBlackDepth(node, parent) != numAncestors){
+        // Depth property VIOLATED
+        cout << "Depth Property violated" << endl;
+        *propertyViolated = true;
+      }
+    }
+  }
+}
+
+int RBTree::getBlackDepth(RBTreeNode *node, RBTreeNode *parent){
+  // Node should be NULL --> double check
+  if (node){
+    cout << "something went wrong, getBlackDepth received a non-NULL node" << endl;
+    exit(1);
+  }
+  // Node is null, continue with count
+  else{
+
+    int numBlackAncestors = 1;
+    int value = parent->key;
+    RBTreeNode *current = root;
+
+    // Traverse tree looking for parent
+    while (current->key != value){
+      if (value < current->key){
+        current = current->left;
+      }
+      else{
+        current = current->right;
+      }
+      if (current->getColor() == "BLACK"){
+        // Increments numBlackAncestors --> count includes parent when loop is exited
+        numBlackAncestors++;
+      }
+    }
+    // Made it here, parent found
+    //cout << "parent found: " << current->key << endl;
+    if (current->left != NULL && current->right != NULL){
+      cout << "something went wrong!" << endl;
+      exit(1);
+    }
+    else{
+      // Parent node has at least 1 null child --> Increment count
+      numBlackAncestors++;
+    }
+    //cout << "numBlackAncestors = " << numBlackAncestors << endl;
+    return numBlackAncestors;
+  }
+}
+
+void RBTree::testallProperties(){
+  bool a = testRootProperty();
+  bool b = testDepthProperty(); // 0 used as unique marker for starting point since 0 will never be the depth
+  bool c = testInternalProperty();
+  bool d = testExternalProperty();
+  // Check if any rules were violated
+  if (a == false || b == false || c == false || d == false){
+    cout << "Tree property violated - exiting program" << endl;
+    exit(1);
+  }
+  else{
+    cout << "All tree properties are satisfied" << endl;
+  }
 }
