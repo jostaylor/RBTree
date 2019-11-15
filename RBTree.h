@@ -688,7 +688,7 @@ void RBTree::fixDoubleBlack(RBTreeNode *parent, RBTreeNode *node){
   cout << "looking for value : " << value << endl;
   // Second conditional added so that the else statement can run in the case of double black NULL node
   while (current->key != value || dblBlackNull == true){
-    cout << "running loop. current = " << current->key << ". color= " << current->getColor() << endl;
+    //cout << "running loop. current = " << current->key << ". color= " << current->getColor() << endl;
     grandparentNode = parentNode;
     parentNode = current;
 

@@ -5,16 +5,46 @@ using namespace std;
 
 int main(int argc, char** argv){
 
+  // Declare variables
   RBTree *myTree = new RBTree();
   int num;
-  for (int i = 0; i < 5000; ++i){
-    num = (rand() % 10000);
+  int testTreeSize;
+  if (argc > 1){
+    testTreeSize = stoi(argv[1]);
+  }
+  else{
+    testTreeSize = 100;
+  }
+
+  cout << "insert?" << endl;
+  cin.ignore();
+
+  int* allValuesInTree = new int[testTreeSize]; // Stores values in array
+  // Generate random numbers and insert them into the tree
+  for (int i = 0; i < testTreeSize; ++i){
+    cout << "------------------------------------------------------ Inserting value " << i+1 << " / " << testTreeSize << endl;
+    num = (rand() % 1000000);
+    // Generate new number if it already exists inside of the tree
     while (myTree->insert(num) == false){
-      num = (rand() % 10000);
+      num = (rand() % 1000000);
     }
+    // Store value in array
+    allValuesInTree[i] = num;
   }
   myTree->printTree();
-/*
+
+  cout << "delete?" << endl;
+  cin.ignore();
+
+  // delete all the nodes within the tree
+  for(int i = 0; i < testTreeSize; ++i){
+    cout << "------------------------------------------------------ Deleting value " << i+1 << " / " << testTreeSize << endl;
+    myTree->deleteNode(allValuesInTree[i]);
+  }
+  // Print tree --> should be EMPTY
+  myTree->printTree();
+
+  /*
   myTree->insert(34);
   myTree->insert(56);
   myTree->insert(30);
