@@ -4,6 +4,8 @@ using namespace std;
 
 enum Color{RED, BLACK};
 
+// Make this bad boy template
+// template <class T>
 class RBTreeNode{
   public:
 

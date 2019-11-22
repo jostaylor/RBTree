@@ -81,9 +81,9 @@ void RBTree::recPrint(RBTreeNode *node){
   if (node == NULL){
     return;
   }
-
-  recPrint(node->left);
   cout << node->key << "\t" << node->getColor() << endl;
+  recPrint(node->left);
+  //cout << node->key << "\t" << node->getColor() << endl;
   recPrint(node->right);
 
 }
